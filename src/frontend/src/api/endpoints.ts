@@ -7,4 +7,6 @@ function joinEndpoint(path: string) {
 export const ENDPOINT = {
   LOGIN: joinEndpoint("/login"),
   GET_USERS: joinEndpoint("/users"),
+  GET_AI_CONTENT: joinEndpoint("/ai-content"),
+  GET_ANALYTICS: joinEndpoint("/analytics"),
 } as const;

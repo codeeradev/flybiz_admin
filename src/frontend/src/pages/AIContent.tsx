@@ -1,25 +1,43 @@
-import { Calendar, Search, User } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
+import { AlertCircle, Calendar, RefreshCw, Search, User } from "lucide-react";
 import { motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ApiError } from "../api/client";
 import { CardGridSkeleton } from "../components/SkeletonLoader";
-import { AI_IMAGES, AI_VIDEOS } from "../mockData/aiContent";
+import { useAuth } from "../hooks/useAuth";
+import { getAIContent } from "../services/contentService";
 
 export default function AIContent() {
-  const [loading, setLoading] = useState(true);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<"images" | "videos">("images");
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    setTimeout(() => setLoading(false), 1200);
-  }, []);
+  const { data, error, isLoading, isFetching, refetch } = useQuery({
+    queryKey: ["admin-ai-content"],
+    queryFn: getAIContent,
+  });
 
-  const items = tab === "images" ? AI_IMAGES : AI_VIDEOS;
-  const filtered = items.filter(
-    (i) =>
-      !search ||
-      i.prompt.toLowerCase().includes(search.toLowerCase()) ||
-      i.userName.toLowerCase().includes(search.toLowerCase()),
-  );
+  useEffect(() => {
+    if (error instanceof ApiError && [401, 403].includes(error.status)) {
+      logout();
+      navigate({ to: "/login" });
+    }
+  }, [error, logout, navigate]);
+
+  const images = data?.images ?? [];
+  const videos = data?.videos ?? [];
+  const items = tab === "images" ? images : videos;
+
+  const filtered = useMemo(() => {
+    return items.filter(
+      (item) =>
+        !search ||
+        item.prompt.toLowerCase().includes(search.toLowerCase()) ||
+        item.userName.toLowerCase().includes(search.toLowerCase()),
+    );
+  }, [items, search]);
 
   return (
     <motion.div
@@ -29,31 +47,43 @@ export default function AIContent() {
       className="space-y-5"
     >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <div className="flex bg-muted rounded-xl p-1 gap-1">
+      <div className="flex flex-col lg:flex-row gap-3 items-start lg:items-center justify-between">
+        <div className="flex flex-wrap gap-3 items-center">
+          <div className="flex bg-muted rounded-xl p-1 gap-1">
+            <button
+              type="button"
+              onClick={() => setTab("images")}
+              data-ocid="aicontent.images.tab"
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                tab === "images"
+                  ? "bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Images ({images.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("videos")}
+              data-ocid="aicontent.videos.tab"
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                tab === "videos"
+                  ? "bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Videos ({videos.length})
+            </button>
+          </div>
           <button
             type="button"
-            onClick={() => setTab("images")}
-            data-ocid="aicontent.images.tab"
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
-              tab === "images"
-                ? "bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+            onClick={() => refetch()}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-card border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
           >
-            Images ({AI_IMAGES.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("videos")}
-            data-ocid="aicontent.videos.tab"
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
-              tab === "videos"
-                ? "bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Videos ({AI_VIDEOS.length})
+            <RefreshCw
+              className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
+            />
+            {isFetching ? "Refreshing..." : "Refresh"}
           </button>
         </div>
         <div className="relative w-full sm:w-72">
@@ -69,8 +99,30 @@ export default function AIContent() {
         </div>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <CardGridSkeleton count={tab === "images" ? 12 : 8} />
+      ) : error ? (
+        <div className="px-4 py-12 flex flex-col items-center justify-center text-center bg-card rounded-xl border border-border shadow-card">
+          <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-400 flex items-center justify-center mb-4">
+            <AlertCircle className="h-5 w-5" />
+          </div>
+          <p className="text-sm font-medium text-foreground">
+            Unable to load AI content
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground max-w-md">
+            {error instanceof Error
+              ? error.message
+              : "Something went wrong while loading AI content."}
+          </p>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Try Again
+          </button>
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map((item, idx) => (
@@ -136,7 +188,9 @@ export default function AIContent() {
               className="col-span-full py-16 text-center text-muted-foreground"
               data-ocid="aicontent.empty_state"
             >
-              No content found matching your search.
+              {items.length === 0
+                ? `No ${tab} have been returned by the API yet.`
+                : "No content found matching your search."}
             </div>
           )}
         </div>
