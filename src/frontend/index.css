@@ -1,0 +1,118 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.75rem;
+    --background: 0.98 0.005 264;
+    --foreground: 0.13 0.025 264;
+    --card: 1 0 0;
+    --card-foreground: 0.13 0.025 264;
+    --popover: 1 0 0;
+    --popover-foreground: 0.13 0.025 264;
+    --primary: 0.546 0.241 264;
+    --primary-foreground: 1 0 0;
+    --secondary: 0.524 0.257 302;
+    --secondary-foreground: 1 0 0;
+    --muted: 0.96 0.008 264;
+    --muted-foreground: 0.52 0.015 264;
+    --accent: 0.651 0.222 349;
+    --accent-foreground: 1 0 0;
+    --destructive: 0.577 0.245 27.325;
+    --destructive-foreground: 1 0 0;
+    --border: 0.90 0.01 264;
+    --input: 0.90 0.01 264;
+    --ring: 0.546 0.241 264;
+    --chart-1: 0.546 0.241 264;
+    --chart-2: 0.524 0.257 302;
+    --chart-3: 0.651 0.222 349;
+    --chart-4: 0.65 0.18 142;
+    --chart-5: 0.75 0.18 70;
+    --sidebar: 0.985 0.005 264;
+    --sidebar-foreground: 0.13 0.025 264;
+    --sidebar-primary: 0.546 0.241 264;
+    --sidebar-primary-foreground: 1 0 0;
+    --sidebar-accent: 0.96 0.008 264;
+    --sidebar-accent-foreground: 0.13 0.025 264;
+    --sidebar-border: 0.90 0.01 264;
+    --sidebar-ring: 0.546 0.241 264;
+  }
+
+  .dark {
+    --background: 0.095 0.018 264;
+    --foreground: 0.96 0.008 264;
+    --card: 0.14 0.022 264;
+    --card-foreground: 0.96 0.008 264;
+    --popover: 0.16 0.025 264;
+    --popover-foreground: 0.96 0.008 264;
+    --primary: 0.63 0.22 264;
+    --primary-foreground: 0.09 0.018 264;
+    --secondary: 0.60 0.23 302;
+    --secondary-foreground: 0.09 0.018 264;
+    --muted: 0.18 0.025 264;
+    --muted-foreground: 0.60 0.02 264;
+    --accent: 0.70 0.21 349;
+    --accent-foreground: 0.09 0.018 264;
+    --destructive: 0.577 0.245 27.325;
+    --destructive-foreground: 1 0 0;
+    --border: 0.22 0.028 264;
+    --input: 0.22 0.028 264;
+    --ring: 0.63 0.22 264;
+    --chart-1: 0.65 0.22 264;
+    --chart-2: 0.62 0.24 302;
+    --chart-3: 0.72 0.22 349;
+    --chart-4: 0.65 0.18 142;
+    --chart-5: 0.78 0.18 70;
+    --sidebar: 0.115 0.02 264;
+    --sidebar-foreground: 0.96 0.008 264;
+    --sidebar-primary: 0.63 0.22 264;
+    --sidebar-primary-foreground: 0.09 0.018 264;
+    --sidebar-accent: 0.18 0.025 264;
+    --sidebar-accent-foreground: 0.96 0.008 264;
+    --sidebar-border: 0.22 0.028 264;
+    --sidebar-ring: 0.63 0.22 264;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+  }
+}
+
+@layer utilities {
+  .gradient-text {
+    @apply bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent;
+  }
+  .gradient-border {
+    background: linear-gradient(var(--background-solid, white), var(--background-solid, white)) padding-box,
+      linear-gradient(to right, #2563EB, #9333EA, #EC4899) border-box;
+    border: 2px solid transparent;
+  }
+  .glass {
+    @apply backdrop-blur-md bg-white/5 border border-white/10;
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: oklch(var(--border)) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-full;
+  }
+}
