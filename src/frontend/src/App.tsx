@@ -16,6 +16,7 @@ import AIContent from "./pages/AIContent";
 import Analytics from "./pages/Analytics";
 import Campaigns from "./pages/Campaigns";
 import Dashboard from "./pages/Dashboard";
+import googleTesting from "./pages/googleTesting";
 import Login from "./pages/Login";
 import Settings from "./pages/Settings";
 import SocialMedia from "./pages/SocialMedia";
@@ -74,6 +75,12 @@ const dashboardRoute = createRoute({
   component: Dashboard,
 });
 
+const testingRoute = createRoute({
+  getParentRoute: () => mainLayoutRoute,
+  path: "/google",
+  component: googleTesting,
+});
+
 const usersRoute = createRoute({
   getParentRoute: () => mainLayoutRoute,
   path: "/users",
@@ -121,6 +128,7 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   mainLayoutRoute.addChildren([
     dashboardRoute,
+    testingRoute,
     usersRoute,
     aiContentRoute,
     socialMediaRoute,

@@ -20307,14 +20307,18 @@ function get$3(endpoint, options) {
 function post(endpoint, body, options) {
   return request("POST", endpoint, { ...options, body });
 }
-const rawBaseUrl = "/api/admin";
-const API_BASE_URL = rawBaseUrl.replace(/\/$/, "");
+const API_BASE_URL = "https://flybizapi.bizyrotech.com";
 function joinEndpoint(path) {
   return `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 const ENDPOINT = {
-  LOGIN: joinEndpoint("/login"),
-  GET_USERS: joinEndpoint("/users")
+  LOGIN: joinEndpoint("/admin/login"),
+  GET_USERS: joinEndpoint("/admin/users"),
+  GET_AI_CONTENT: joinEndpoint("/admin/ai-content"),
+  GET_ANALYTICS: joinEndpoint("/admin/analytics"),
+  GOOGLE_CONNECT: joinEndpoint("/google/connect"),
+  GOOGLE_LOCATIONS: joinEndpoint("/google/locations"),
+  GOOGLE_LOCATION: joinEndpoint("/google/location")
 };
 const AuthContext = reactExports.createContext(null);
 function AuthProvider({ children }) {
@@ -29345,201 +29349,83 @@ function ChartSkeleton() {
     /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "h-64 w-full rounded-lg" })
   ] });
 }
-const AI_IMAGES = [
-  {
-    id: 1,
-    type: "image",
-    prompt: "Futuristic cityscape at golden hour with flying electric vehicles and neon holograms",
-    userName: "Sophia Bennett",
-    date: "Jul 10, 2025",
-    thumbnailColor: "from-blue-500 to-purple-600",
-    resolution: "1920×1080"
-  },
-  {
-    id: 2,
-    type: "image",
-    prompt: "Minimalist luxury perfume bottle on black marble surface with dramatic lighting",
-    userName: "James Rivera",
-    date: "Jul 9, 2025",
-    thumbnailColor: "from-gray-700 to-gray-900",
-    resolution: "1080×1080"
-  },
-  {
-    id: 3,
-    type: "image",
-    prompt: "Abstract neural network visualization in deep space with colorful synaptic connections",
-    userName: "Marcus Chen",
-    date: "Jul 9, 2025",
-    thumbnailColor: "from-purple-600 to-pink-500",
-    resolution: "1920×1080"
-  },
-  {
-    id: 4,
-    type: "image",
-    prompt: "Artisan coffee shop interior with warm bokeh lights and exposed brick walls",
-    userName: "Elena Vasquez",
-    date: "Jul 8, 2025",
-    thumbnailColor: "from-amber-600 to-orange-500",
-    resolution: "1080×1350"
-  },
-  {
-    id: 5,
-    type: "image",
-    prompt: "Hyper-realistic product shot of wireless headphones floating with water splashes",
-    userName: "Noah Williams",
-    date: "Jul 8, 2025",
-    thumbnailColor: "from-cyan-500 to-blue-600",
-    resolution: "1920×1080"
-  },
-  {
-    id: 6,
-    type: "image",
-    prompt: "Sunset over rolling vineyard hills in Tuscany with warm terracotta tones",
-    userName: "Isabella Moore",
-    date: "Jul 7, 2025",
-    thumbnailColor: "from-orange-400 to-rose-500",
-    resolution: "1920×1080"
-  },
-  {
-    id: 7,
-    type: "image",
-    prompt: "Tech startup team in modern glass office with city views at night",
-    userName: "Ethan Wilson",
-    date: "Jul 7, 2025",
-    thumbnailColor: "from-slate-600 to-blue-700",
-    resolution: "1080×1080"
-  },
-  {
-    id: 8,
-    type: "image",
-    prompt: "Bioluminescent ocean wave crashing at night with glowing particles",
-    userName: "Mia Davis",
-    date: "Jul 6, 2025",
-    thumbnailColor: "from-teal-500 to-blue-500",
-    resolution: "1920×1080"
-  },
-  {
-    id: 9,
-    type: "image",
-    prompt: "Luxury electric sports car on mountain road at dawn with misty atmosphere",
-    userName: "Oliver Martinez",
-    date: "Jul 6, 2025",
-    thumbnailColor: "from-red-600 to-orange-500",
-    resolution: "1920×1080"
-  },
-  {
-    id: 10,
-    type: "image",
-    prompt: "Ethereal goddess portrait with floral crown surrounded by golden butterflies",
-    userName: "Charlotte Brown",
-    date: "Jul 5, 2025",
-    thumbnailColor: "from-yellow-400 to-pink-500",
-    resolution: "1080×1350"
-  },
-  {
-    id: 11,
-    type: "image",
-    prompt: "Futuristic AI research lab with holographic displays and robotic arms",
-    userName: "William Taylor",
-    date: "Jul 5, 2025",
-    thumbnailColor: "from-violet-600 to-indigo-700",
-    resolution: "1920×1080"
-  },
-  {
-    id: 12,
-    type: "image",
-    prompt: "Organic health food bowl with vibrant ingredients on rustic wooden surface",
-    userName: "Harper Garcia",
-    date: "Jul 4, 2025",
-    thumbnailColor: "from-green-500 to-emerald-600",
-    resolution: "1080×1080"
+function isAIContentType(value) {
+  return value === "image" || value === "video";
+}
+function normalizeText$1(value, fallback) {
+  return typeof value === "string" && value.trim().length > 0 ? value : fallback;
+}
+function normalizeCount(value, fallback) {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+function normalizeItem(item, index2, fallbackType) {
+  const type = isAIContentType(item.type) ? item.type : fallbackType;
+  return {
+    id: String(item.id ?? `${type}-${index2 + 1}`),
+    type,
+    prompt: normalizeText$1(item.prompt, "Untitled prompt"),
+    userName: normalizeText$1(item.userName, "Unknown User"),
+    date: normalizeText$1(item.date, "—"),
+    thumbnailColor: normalizeText$1(
+      item.thumbnailColor,
+      type === "video" ? "from-slate-600 to-slate-900" : "from-blue-500 to-purple-600"
+    ),
+    resolution: typeof item.resolution === "string" && item.resolution.trim().length > 0 ? item.resolution : void 0,
+    duration: typeof item.duration === "string" && item.duration.trim().length > 0 ? item.duration : void 0
+  };
+}
+function normalizeItems(items, type) {
+  if (!Array.isArray(items)) {
+    return [];
   }
-];
-const AI_VIDEOS = [
-  {
-    id: 101,
-    type: "video",
-    prompt: "Brand intro animation with logo reveal and particle effects in blue-purple gradient",
-    userName: "Marcus Chen",
-    date: "Jul 10, 2025",
-    thumbnailColor: "from-blue-600 to-purple-700",
-    duration: "0:15"
-  },
-  {
-    id: 102,
-    type: "video",
-    prompt: "Product showcase reel for wireless earbuds with 3D rotation and feature callouts",
-    userName: "Sophia Bennett",
-    date: "Jul 9, 2025",
-    thumbnailColor: "from-gray-600 to-slate-800",
-    duration: "0:30"
-  },
-  {
-    id: 103,
-    type: "video",
-    prompt: "Time-lapse of sustainable packaging being assembled from recycled materials",
-    userName: "Elena Vasquez",
-    date: "Jul 8, 2025",
-    thumbnailColor: "from-green-600 to-teal-700",
-    duration: "0:45"
-  },
-  {
-    id: 104,
-    type: "video",
-    prompt: "Cinematic travel montage: Santorini sunsets, Thai markets, and Tokyo streets",
-    userName: "Noah Williams",
-    date: "Jul 7, 2025",
-    thumbnailColor: "from-orange-500 to-pink-600",
-    duration: "1:00"
-  },
-  {
-    id: 105,
-    type: "video",
-    prompt: "Explainer animation: How AI transforms social media content creation workflow",
-    userName: "Ethan Wilson",
-    date: "Jul 6, 2025",
-    thumbnailColor: "from-purple-500 to-pink-600",
-    duration: "1:30"
-  },
-  {
-    id: 106,
-    type: "video",
-    prompt: "Fashion lookbook with model transitions and dynamic typography overlays",
-    userName: "Isabella Moore",
-    date: "Jul 5, 2025",
-    thumbnailColor: "from-rose-500 to-red-600",
-    duration: "0:45"
-  },
-  {
-    id: 107,
-    type: "video",
-    prompt: "Corporate testimonial montage with smooth talking-head transitions",
-    userName: "William Taylor",
-    date: "Jul 4, 2025",
-    thumbnailColor: "from-sky-500 to-blue-700",
-    duration: "2:00"
-  },
-  {
-    id: 108,
-    type: "video",
-    prompt: "Social media stories compilation with trending audio and text animations",
-    userName: "Harper Garcia",
-    date: "Jul 3, 2025",
-    thumbnailColor: "from-fuchsia-500 to-violet-700",
-    duration: "0:30"
-  }
-];
+  return items.map(
+    (item, index2) => normalizeItem(item ?? {}, index2, type)
+  );
+}
+function normalizeResponse(payload) {
+  var _a2, _b2, _c2;
+  const images = normalizeItems(payload.images, "image");
+  const videos = normalizeItems(payload.videos, "video");
+  return {
+    message: payload.message,
+    images,
+    videos,
+    totals: {
+      images: normalizeCount((_a2 = payload.totals) == null ? void 0 : _a2.images, images.length),
+      videos: normalizeCount((_b2 = payload.totals) == null ? void 0 : _b2.videos, videos.length),
+      all: normalizeCount((_c2 = payload.totals) == null ? void 0 : _c2.all, images.length + videos.length)
+    }
+  };
+}
+async function getAIContent() {
+  const response = await get$3(ENDPOINT.GET_AI_CONTENT, {
+    auth: true
+  });
+  return normalizeResponse(response);
+}
 function AIContent() {
-  const [loading, setLoading] = reactExports.useState(true);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const [tab, setTab] = reactExports.useState("images");
   const [search, setSearch] = reactExports.useState("");
+  const { data, error, isLoading, isFetching, refetch } = useQuery({
+    queryKey: ["admin-ai-content"],
+    queryFn: getAIContent
+  });
   reactExports.useEffect(() => {
-    setTimeout(() => setLoading(false), 1200);
-  }, []);
-  const items = tab === "images" ? AI_IMAGES : AI_VIDEOS;
-  const filtered = items.filter(
-    (i) => !search || i.prompt.toLowerCase().includes(search.toLowerCase()) || i.userName.toLowerCase().includes(search.toLowerCase())
-  );
+    if (error instanceof ApiError && [401, 403].includes(error.status)) {
+      logout();
+      navigate({ to: "/login" });
+    }
+  }, [error, logout, navigate]);
+  const images = (data == null ? void 0 : data.images) ?? [];
+  const videos = (data == null ? void 0 : data.videos) ?? [];
+  const items = tab === "images" ? images : videos;
+  const filtered = reactExports.useMemo(() => {
+    return items.filter(
+      (item) => !search || item.prompt.toLowerCase().includes(search.toLowerCase()) || item.userName.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [items, search]);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     motion.div,
     {
@@ -29548,33 +29434,52 @@ function AIContent() {
       transition: { duration: 0.4 },
       className: "space-y-5",
       children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex bg-muted rounded-xl p-1 gap-1", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col lg:flex-row gap-3 items-start lg:items-center justify-between", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap gap-3 items-center", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex bg-muted rounded-xl p-1 gap-1", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "button",
+                {
+                  type: "button",
+                  onClick: () => setTab("images"),
+                  "data-ocid": "aicontent.images.tab",
+                  className: `px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === "images" ? "bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow" : "text-muted-foreground hover:text-foreground"}`,
+                  children: [
+                    "Images (",
+                    images.length,
+                    ")"
+                  ]
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "button",
+                {
+                  type: "button",
+                  onClick: () => setTab("videos"),
+                  "data-ocid": "aicontent.videos.tab",
+                  className: `px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === "videos" ? "bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow" : "text-muted-foreground hover:text-foreground"}`,
+                  children: [
+                    "Videos (",
+                    videos.length,
+                    ")"
+                  ]
+                }
+              )
+            ] }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs(
               "button",
               {
                 type: "button",
-                onClick: () => setTab("images"),
-                "data-ocid": "aicontent.images.tab",
-                className: `px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === "images" ? "bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow" : "text-muted-foreground hover:text-foreground"}`,
+                onClick: () => refetch(),
+                className: "inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-card border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors",
                 children: [
-                  "Images (",
-                  AI_IMAGES.length,
-                  ")"
-                ]
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              "button",
-              {
-                type: "button",
-                onClick: () => setTab("videos"),
-                "data-ocid": "aicontent.videos.tab",
-                className: `px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === "videos" ? "bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow" : "text-muted-foreground hover:text-foreground"}`,
-                children: [
-                  "Videos (",
-                  AI_VIDEOS.length,
-                  ")"
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    RefreshCw,
+                    {
+                      className: `h-4 w-4 ${isFetching ? "animate-spin" : ""}`
+                    }
+                  ),
+                  isFetching ? "Refreshing..." : "Refresh"
                 ]
               }
             )
@@ -29594,7 +29499,23 @@ function AIContent() {
             )
           ] })
         ] }),
-        loading ? /* @__PURE__ */ jsxRuntimeExports.jsx(CardGridSkeleton, { count: tab === "images" ? 12 : 8 }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4", children: [
+        isLoading ? /* @__PURE__ */ jsxRuntimeExports.jsx(CardGridSkeleton, { count: tab === "images" ? 12 : 8 }) : error ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "px-4 py-12 flex flex-col items-center justify-center text-center bg-card rounded-xl border border-border shadow-card", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-12 h-12 rounded-full bg-red-500/10 text-red-400 flex items-center justify-center mb-4", children: /* @__PURE__ */ jsxRuntimeExports.jsx(CircleAlert, { className: "h-5 w-5" }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm font-medium text-foreground", children: "Unable to load AI content" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 text-sm text-muted-foreground max-w-md", children: error instanceof Error ? error.message : "Something went wrong while loading AI content." }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            "button",
+            {
+              type: "button",
+              onClick: () => refetch(),
+              className: "mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:opacity-90 transition-opacity",
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(RefreshCw, { className: "h-4 w-4" }),
+                "Try Again"
+              ]
+            }
+          )
+        ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4", children: [
           filtered.map((item, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
             motion.div,
             {
@@ -29650,7 +29571,7 @@ function AIContent() {
             {
               className: "col-span-full py-16 text-center text-muted-foreground",
               "data-ocid": "aicontent.empty_state",
-              children: "No content found matching your search."
+              children: items.length === 0 ? `No ${tab} have been returned by the API yet.` : "No content found matching your search."
             }
           )
         ] })
@@ -51957,67 +51878,107 @@ function ChartCard({
     }
   );
 }
-const AI_GENERATION_TREND = [
-  { month: "Aug '24", images: 4200, videos: 1100, total: 5300 },
-  { month: "Sep '24", images: 5800, videos: 1450, total: 7250 },
-  { month: "Oct '24", images: 7100, videos: 1920, total: 9020 },
-  { month: "Nov '24", images: 8900, videos: 2340, total: 11240 },
-  { month: "Dec '24", images: 12400, videos: 3100, total: 15500 },
-  { month: "Jan '25", images: 9800, videos: 2600, total: 12400 },
-  { month: "Feb '25", images: 11200, videos: 2980, total: 14180 },
-  { month: "Mar '25", images: 14500, videos: 3800, total: 18300 },
-  { month: "Apr '25", images: 16200, videos: 4200, total: 20400 },
-  { month: "May '25", images: 18900, videos: 4890, total: 23790 },
-  { month: "Jun '25", images: 22400, videos: 5600, total: 28e3 },
-  { month: "Jul '25", images: 26800, videos: 6700, total: 33500 }
-];
-const SOCIAL_ENGAGEMENT = [
-  { day: "Mon", instagram: 4200, facebook: 2100, twitter: 1800, linkedin: 890 },
-  {
-    day: "Tue",
-    instagram: 3800,
-    facebook: 1900,
-    twitter: 2100,
-    linkedin: 1200
-  },
-  {
-    day: "Wed",
-    instagram: 5200,
-    facebook: 2800,
-    twitter: 2400,
-    linkedin: 1450
-  },
-  { day: "Thu", instagram: 4900, facebook: 2400, twitter: 1900, linkedin: 980 },
-  {
-    day: "Fri",
-    instagram: 6800,
-    facebook: 3200,
-    twitter: 3100,
-    linkedin: 1890
-  },
-  { day: "Sat", instagram: 8900, facebook: 4100, twitter: 2600, linkedin: 670 },
-  { day: "Sun", instagram: 7400, facebook: 3600, twitter: 2200, linkedin: 540 }
-];
-const USER_GROWTH = [
-  { month: "Aug '24", users: 1200, newUsers: 380 },
-  { month: "Sep '24", users: 1680, newUsers: 480 },
-  { month: "Oct '24", users: 2240, newUsers: 560 },
-  { month: "Nov '24", users: 2980, newUsers: 740 },
-  { month: "Dec '24", users: 3890, newUsers: 910 },
-  { month: "Jan '25", users: 4780, newUsers: 890 },
-  { month: "Feb '25", users: 5890, newUsers: 1110 },
-  { month: "Mar '25", users: 7340, newUsers: 1450 },
-  { month: "Apr '25", users: 9120, newUsers: 1780 },
-  { month: "May '25", users: 11400, newUsers: 2280 },
-  { month: "Jun '25", users: 14200, newUsers: 2800 },
-  { month: "Jul '25", users: 17800, newUsers: 3600 }
-];
+function normalizeText(value, fallback) {
+  return typeof value === "string" && value.trim().length > 0 ? value : fallback;
+}
+function normalizeNumber(value, fallback = 0) {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+function normalizeSummaryCard(item, index2) {
+  return {
+    label: normalizeText(item.label, `Summary ${index2 + 1}`),
+    value: normalizeText(item.value, "0"),
+    change: normalizeText(item.change, "0%"),
+    trend: item.trend === "down" ? "down" : "up"
+  };
+}
+function normalizeSummary(items) {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+  return items.map(
+    (item, index2) => normalizeSummaryCard(item ?? {}, index2)
+  );
+}
+function normalizeAIGenerationTrend(items) {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+  return items.map((item, index2) => {
+    const point2 = item ?? {};
+    return {
+      month: normalizeText(point2.month, `Item ${index2 + 1}`),
+      images: normalizeNumber(point2.images),
+      videos: normalizeNumber(point2.videos),
+      total: normalizeNumber(point2.total)
+    };
+  });
+}
+function normalizeSocialEngagement(items) {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+  return items.map((item, index2) => {
+    const point2 = item ?? {};
+    return {
+      day: normalizeText(point2.day, `Day ${index2 + 1}`),
+      instagram: normalizeNumber(point2.instagram),
+      facebook: normalizeNumber(point2.facebook),
+      twitter: normalizeNumber(point2.twitter),
+      linkedin: normalizeNumber(point2.linkedin)
+    };
+  });
+}
+function normalizeUserGrowth(items) {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+  return items.map((item, index2) => {
+    const point2 = item ?? {};
+    return {
+      month: normalizeText(point2.month, `Item ${index2 + 1}`),
+      users: normalizeNumber(point2.users),
+      newUsers: normalizeNumber(point2.newUsers)
+    };
+  });
+}
+function normalizeAnalyticsResponse(payload) {
+  return {
+    message: payload.message,
+    summary: normalizeSummary(payload.summary),
+    aiGenerationTrend: normalizeAIGenerationTrend(payload.aiGenerationTrend),
+    socialEngagement: normalizeSocialEngagement(payload.socialEngagement),
+    userGrowth: normalizeUserGrowth(payload.userGrowth)
+  };
+}
+async function getAnalytics() {
+  const response = await get$3(ENDPOINT.GET_ANALYTICS, {
+    auth: true
+  });
+  return normalizeAnalyticsResponse(response);
+}
 function formatNumber(n2) {
   if (n2 >= 1e6) return `${(n2 / 1e6).toFixed(1)}M`;
   if (n2 >= 1e3) return `${(n2 / 1e3).toFixed(1)}K`;
   return n2.toString();
 }
 const TIME_OPTIONS = ["7d", "30d", "90d", "1y"];
+const SUMMARY_SKELETON_KEYS = ["s1", "s2", "s3", "s4"];
+const MONTH_RANGE_POINTS = {
+  "7d": 1,
+  "30d": 1,
+  "90d": 3,
+  "1y": 12
+};
+const DAY_RANGE_POINTS = {
+  "7d": 7,
+  "30d": 30,
+  "90d": 90,
+  "1y": 365
+};
+function takeLastPoints(items, count) {
+  return count >= items.length ? items : items.slice(-count);
+}
 function TimeSelector({
   active,
   onChange,
@@ -52044,10 +52005,41 @@ const tooltipStyle = {
     fontSize: 12
   }
 };
+function EmptyChartState({ message }) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-[300px] flex items-center justify-center text-sm text-muted-foreground", children: message });
+}
 function Analytics() {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const [range1, setRange1] = reactExports.useState("1y");
   const [range22, setRange2] = reactExports.useState("7d");
   const [range3, setRange3] = reactExports.useState("1y");
+  const { data, error, isLoading, isFetching, refetch } = useQuery({
+    queryKey: ["admin-analytics"],
+    queryFn: getAnalytics
+  });
+  reactExports.useEffect(() => {
+    if (error instanceof ApiError && [401, 403].includes(error.status)) {
+      logout();
+      navigate({ to: "/login" });
+    }
+  }, [error, logout, navigate]);
+  const summary = (data == null ? void 0 : data.summary) ?? [];
+  const aiGenerationTrend = (data == null ? void 0 : data.aiGenerationTrend) ?? [];
+  const socialEngagement = (data == null ? void 0 : data.socialEngagement) ?? [];
+  const userGrowth = (data == null ? void 0 : data.userGrowth) ?? [];
+  const filteredAIGenerationTrend = reactExports.useMemo(
+    () => takeLastPoints(aiGenerationTrend, MONTH_RANGE_POINTS[range1]),
+    [aiGenerationTrend, range1]
+  );
+  const filteredSocialEngagement = reactExports.useMemo(
+    () => takeLastPoints(socialEngagement, DAY_RANGE_POINTS[range22]),
+    [socialEngagement, range22]
+  );
+  const filteredUserGrowth = reactExports.useMemo(
+    () => takeLastPoints(userGrowth, MONTH_RANGE_POINTS[range3]),
+    [userGrowth, range3]
+  );
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
     motion.div,
     {
@@ -52056,289 +52048,354 @@ function Analytics() {
       transition: { duration: 0.4 },
       className: "space-y-6",
       children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid grid-cols-2 lg:grid-cols-4 gap-4", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex justify-end", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "button",
           {
-            label: "Total Generations",
-            value: "326.4K",
-            change: "+24.8%",
-            color: "text-emerald-400"
-          },
-          {
-            label: "Total Engagement",
-            value: "2.1M",
-            change: "+18.2%",
-            color: "text-emerald-400"
-          },
-          {
-            label: "User Growth Rate",
-            value: "48.3%",
-            change: "+12.1%",
-            color: "text-emerald-400"
-          },
-          {
-            label: "Avg. Posts/User",
-            value: "7.2",
-            change: "-2.4%",
-            color: "text-red-400"
-          }
-        ].map((s2, i) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          motion.div,
-          {
-            initial: { opacity: 0, y: 10 },
-            animate: { opacity: 1, y: 0 },
-            transition: { delay: i * 0.07 },
-            className: "bg-card rounded-xl border border-border p-4 shadow-card",
+            type: "button",
+            onClick: () => refetch(),
+            className: "inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-card border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors",
             children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-muted-foreground uppercase tracking-wider mb-1", children: s2.label }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-2xl font-bold font-display text-foreground", children: s2.value }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: `text-xs font-medium mt-1 ${s2.color}`, children: [
-                s2.change,
-                " vs prev period"
-              ] })
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                RefreshCw,
+                {
+                  className: `h-4 w-4 ${isFetching ? "animate-spin" : ""}`
+                }
+              ),
+              isFetching ? "Refreshing..." : "Refresh"
             ]
-          },
-          s2.label
-        )) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          ChartCard,
-          {
-            title: "AI Generation Trends",
-            description: "Monthly images and videos generated across the platform",
-            actions: /* @__PURE__ */ jsxRuntimeExports.jsx(
-              TimeSelector,
-              {
-                active: range1,
-                onChange: setRange1,
-                ocid: "analytics.chart1.button"
-              }
-            ),
-            children: /* @__PURE__ */ jsxRuntimeExports.jsx(ResponsiveContainer, { width: "100%", height: 300, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(LineChart, { data: AI_GENERATION_TREND, children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                CartesianGrid,
-                {
-                  strokeDasharray: "3 3",
-                  stroke: "oklch(var(--border))"
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                XAxis,
-                {
-                  dataKey: "month",
-                  tick: { fontSize: 11, fill: "oklch(var(--muted-foreground))" }
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                YAxis,
-                {
-                  tick: { fontSize: 11, fill: "oklch(var(--muted-foreground))" },
-                  tickFormatter: formatNumber
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Tooltip,
-                {
-                  ...tooltipStyle,
-                  formatter: (v2) => [formatNumber(v2), ""]
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Legend, {}),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Line,
-                {
-                  type: "monotone",
-                  dataKey: "images",
-                  stroke: "#2563EB",
-                  strokeWidth: 2.5,
-                  dot: false,
-                  name: "Images"
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Line,
-                {
-                  type: "monotone",
-                  dataKey: "videos",
-                  stroke: "#9333EA",
-                  strokeWidth: 2.5,
-                  dot: false,
-                  name: "Videos"
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Line,
-                {
-                  type: "monotone",
-                  dataKey: "total",
-                  stroke: "#EC4899",
-                  strokeWidth: 2,
-                  dot: false,
-                  strokeDasharray: "4 4",
-                  name: "Total"
-                }
-              )
-            ] }) })
           }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          ChartCard,
-          {
-            title: "Social Media Engagement",
-            description: "Daily engagement across connected platforms",
-            actions: /* @__PURE__ */ jsxRuntimeExports.jsx(
-              TimeSelector,
-              {
-                active: range22,
-                onChange: setRange2,
-                ocid: "analytics.chart2.button"
-              }
-            ),
-            children: /* @__PURE__ */ jsxRuntimeExports.jsx(ResponsiveContainer, { width: "100%", height: 300, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(BarChart, { data: SOCIAL_ENGAGEMENT, children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                CartesianGrid,
+        ) }),
+        isLoading ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid grid-cols-2 lg:grid-cols-4 gap-4", children: SUMMARY_SKELETON_KEYS.map((key) => /* @__PURE__ */ jsxRuntimeExports.jsx(StatCardSkeleton, {}, key)) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(ChartSkeleton, {}),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(ChartSkeleton, {}),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(ChartSkeleton, {})
+        ] }) : error ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "px-4 py-12 flex flex-col items-center justify-center text-center bg-card rounded-xl border border-border shadow-card", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-12 h-12 rounded-full bg-red-500/10 text-red-400 flex items-center justify-center mb-4", children: /* @__PURE__ */ jsxRuntimeExports.jsx(CircleAlert, { className: "h-5 w-5" }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm font-medium text-foreground", children: "Unable to load analytics" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 text-sm text-muted-foreground max-w-md", children: error instanceof Error ? error.message : "Something went wrong while loading analytics." }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            "button",
+            {
+              type: "button",
+              onClick: () => refetch(),
+              className: "mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:opacity-90 transition-opacity",
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(RefreshCw, { className: "h-4 w-4" }),
+                "Try Again"
+              ]
+            }
+          )
+        ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid grid-cols-2 lg:grid-cols-4 gap-4", children: summary.map((item, index2) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            motion.div,
+            {
+              initial: { opacity: 0, y: 10 },
+              animate: { opacity: 1, y: 0 },
+              transition: { delay: index2 * 0.07 },
+              className: "bg-card rounded-xl border border-border p-4 shadow-card",
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-muted-foreground uppercase tracking-wider mb-1", children: item.label }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-2xl font-bold font-display text-foreground", children: item.value }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  "p",
+                  {
+                    className: `text-xs font-medium mt-1 ${item.trend === "down" ? "text-red-400" : "text-emerald-400"}`,
+                    children: [
+                      item.change,
+                      " vs prev period"
+                    ]
+                  }
+                )
+              ]
+            },
+            item.label
+          )) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            ChartCard,
+            {
+              title: "AI Generation Trends",
+              description: "Monthly images and videos generated across the platform",
+              actions: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                TimeSelector,
                 {
-                  strokeDasharray: "3 3",
-                  stroke: "oklch(var(--border))"
+                  active: range1,
+                  onChange: setRange1,
+                  ocid: "analytics.chart1.button"
                 }
               ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                XAxis,
+              children: filteredAIGenerationTrend.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(EmptyChartState, { message: "No AI generation analytics available yet." }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ResponsiveContainer, { width: "100%", height: 300, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(LineChart, { data: filteredAIGenerationTrend, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  CartesianGrid,
+                  {
+                    strokeDasharray: "3 3",
+                    stroke: "oklch(var(--border))"
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  XAxis,
+                  {
+                    dataKey: "month",
+                    interval: "preserveStartEnd",
+                    minTickGap: 24,
+                    tick: {
+                      fontSize: 11,
+                      fill: "oklch(var(--muted-foreground))"
+                    }
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  YAxis,
+                  {
+                    tick: {
+                      fontSize: 11,
+                      fill: "oklch(var(--muted-foreground))"
+                    },
+                    tickFormatter: formatNumber
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  Tooltip,
+                  {
+                    ...tooltipStyle,
+                    formatter: (v2) => [formatNumber(v2), ""]
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Legend, {}),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  Line,
+                  {
+                    type: "monotone",
+                    dataKey: "images",
+                    stroke: "#2563EB",
+                    strokeWidth: 2.5,
+                    dot: false,
+                    name: "Images"
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  Line,
+                  {
+                    type: "monotone",
+                    dataKey: "videos",
+                    stroke: "#9333EA",
+                    strokeWidth: 2.5,
+                    dot: false,
+                    name: "Videos"
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  Line,
+                  {
+                    type: "monotone",
+                    dataKey: "total",
+                    stroke: "#EC4899",
+                    strokeWidth: 2,
+                    dot: false,
+                    strokeDasharray: "4 4",
+                    name: "Total"
+                  }
+                )
+              ] }) })
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            ChartCard,
+            {
+              title: "Social Media Engagement",
+              description: "Daily engagement across connected platforms",
+              actions: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                TimeSelector,
                 {
-                  dataKey: "day",
-                  tick: { fontSize: 11, fill: "oklch(var(--muted-foreground))" }
+                  active: range22,
+                  onChange: setRange2,
+                  ocid: "analytics.chart2.button"
                 }
               ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                YAxis,
+              children: filteredSocialEngagement.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(EmptyChartState, { message: "No social engagement data available yet." }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ResponsiveContainer, { width: "100%", height: 300, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(BarChart, { data: filteredSocialEngagement, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  CartesianGrid,
+                  {
+                    strokeDasharray: "3 3",
+                    stroke: "oklch(var(--border))"
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  XAxis,
+                  {
+                    dataKey: "day",
+                    interval: "preserveStartEnd",
+                    minTickGap: 20,
+                    tick: {
+                      fontSize: 11,
+                      fill: "oklch(var(--muted-foreground))"
+                    }
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  YAxis,
+                  {
+                    tick: {
+                      fontSize: 11,
+                      fill: "oklch(var(--muted-foreground))"
+                    },
+                    tickFormatter: formatNumber
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  Tooltip,
+                  {
+                    ...tooltipStyle,
+                    formatter: (v2) => [formatNumber(v2), ""]
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Legend, {}),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  Bar,
+                  {
+                    dataKey: "instagram",
+                    fill: "#E1306C",
+                    radius: [4, 4, 0, 0],
+                    name: "Instagram"
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  Bar,
+                  {
+                    dataKey: "facebook",
+                    fill: "#1877F2",
+                    radius: [4, 4, 0, 0],
+                    name: "Facebook"
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  Bar,
+                  {
+                    dataKey: "twitter",
+                    fill: "#1DA1F2",
+                    radius: [4, 4, 0, 0],
+                    name: "Twitter"
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  Bar,
+                  {
+                    dataKey: "linkedin",
+                    fill: "#0077B5",
+                    radius: [4, 4, 0, 0],
+                    name: "LinkedIn"
+                  }
+                )
+              ] }) })
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            ChartCard,
+            {
+              title: "User Growth",
+              description: "Cumulative user acquisition over time",
+              actions: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                TimeSelector,
                 {
-                  tick: { fontSize: 11, fill: "oklch(var(--muted-foreground))" },
-                  tickFormatter: formatNumber
+                  active: range3,
+                  onChange: setRange3,
+                  ocid: "analytics.chart3.button"
                 }
               ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Tooltip,
-                {
-                  ...tooltipStyle,
-                  formatter: (v2) => [formatNumber(v2), ""]
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Legend, {}),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Bar,
-                {
-                  dataKey: "instagram",
-                  fill: "#E1306C",
-                  radius: [4, 4, 0, 0],
-                  name: "Instagram"
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Bar,
-                {
-                  dataKey: "facebook",
-                  fill: "#1877F2",
-                  radius: [4, 4, 0, 0],
-                  name: "Facebook"
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Bar,
-                {
-                  dataKey: "twitter",
-                  fill: "#1DA1F2",
-                  radius: [4, 4, 0, 0],
-                  name: "Twitter"
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Bar,
-                {
-                  dataKey: "linkedin",
-                  fill: "#0077B5",
-                  radius: [4, 4, 0, 0],
-                  name: "LinkedIn"
-                }
-              )
-            ] }) })
-          }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          ChartCard,
-          {
-            title: "User Growth",
-            description: "Cumulative user acquisition over time",
-            actions: /* @__PURE__ */ jsxRuntimeExports.jsx(
-              TimeSelector,
-              {
-                active: range3,
-                onChange: setRange3,
-                ocid: "analytics.chart3.button"
-              }
-            ),
-            children: /* @__PURE__ */ jsxRuntimeExports.jsx(ResponsiveContainer, { width: "100%", height: 300, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(AreaChart, { data: USER_GROWTH, children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("defs", { children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("linearGradient", { id: "userGradient", x1: "0", y1: "0", x2: "0", y2: "1", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("stop", { offset: "5%", stopColor: "#2563EB", stopOpacity: 0.3 }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("stop", { offset: "95%", stopColor: "#2563EB", stopOpacity: 0 })
+              children: filteredUserGrowth.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(EmptyChartState, { message: "No user growth data available yet." }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ResponsiveContainer, { width: "100%", height: 300, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(AreaChart, { data: filteredUserGrowth, children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("defs", { children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                    "linearGradient",
+                    {
+                      id: "userGradient",
+                      x1: "0",
+                      y1: "0",
+                      x2: "0",
+                      y2: "1",
+                      children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("stop", { offset: "5%", stopColor: "#2563EB", stopOpacity: 0.3 }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("stop", { offset: "95%", stopColor: "#2563EB", stopOpacity: 0 })
+                      ]
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                    "linearGradient",
+                    {
+                      id: "newUserGradient",
+                      x1: "0",
+                      y1: "0",
+                      x2: "0",
+                      y2: "1",
+                      children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("stop", { offset: "5%", stopColor: "#9333EA", stopOpacity: 0.3 }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("stop", { offset: "95%", stopColor: "#9333EA", stopOpacity: 0 })
+                      ]
+                    }
+                  )
                 ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("linearGradient", { id: "newUserGradient", x1: "0", y1: "0", x2: "0", y2: "1", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("stop", { offset: "5%", stopColor: "#9333EA", stopOpacity: 0.3 }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("stop", { offset: "95%", stopColor: "#9333EA", stopOpacity: 0 })
-                ] })
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                CartesianGrid,
-                {
-                  strokeDasharray: "3 3",
-                  stroke: "oklch(var(--border))"
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                XAxis,
-                {
-                  dataKey: "month",
-                  tick: { fontSize: 11, fill: "oklch(var(--muted-foreground))" }
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                YAxis,
-                {
-                  tick: { fontSize: 11, fill: "oklch(var(--muted-foreground))" },
-                  tickFormatter: formatNumber
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Tooltip,
-                {
-                  ...tooltipStyle,
-                  formatter: (v2) => [formatNumber(v2), ""]
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Legend, {}),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Area,
-                {
-                  type: "monotone",
-                  dataKey: "users",
-                  stroke: "#2563EB",
-                  strokeWidth: 2,
-                  fill: "url(#userGradient)",
-                  name: "Total Users"
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Area,
-                {
-                  type: "monotone",
-                  dataKey: "newUsers",
-                  stroke: "#9333EA",
-                  strokeWidth: 2,
-                  fill: "url(#newUserGradient)",
-                  name: "New Users"
-                }
-              )
-            ] }) })
-          }
-        )
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  CartesianGrid,
+                  {
+                    strokeDasharray: "3 3",
+                    stroke: "oklch(var(--border))"
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  XAxis,
+                  {
+                    dataKey: "month",
+                    interval: "preserveStartEnd",
+                    minTickGap: 24,
+                    tick: {
+                      fontSize: 11,
+                      fill: "oklch(var(--muted-foreground))"
+                    }
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  YAxis,
+                  {
+                    tick: {
+                      fontSize: 11,
+                      fill: "oklch(var(--muted-foreground))"
+                    },
+                    tickFormatter: formatNumber
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  Tooltip,
+                  {
+                    ...tooltipStyle,
+                    formatter: (v2) => [formatNumber(v2), ""]
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Legend, {}),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  Area,
+                  {
+                    type: "monotone",
+                    dataKey: "users",
+                    stroke: "#2563EB",
+                    strokeWidth: 2,
+                    fill: "url(#userGradient)",
+                    name: "Total Users"
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  Area,
+                  {
+                    type: "monotone",
+                    dataKey: "newUsers",
+                    stroke: "#9333EA",
+                    strokeWidth: 2,
+                    fill: "url(#newUserGradient)",
+                    name: "New Users"
+                  }
+                )
+              ] }) })
+            }
+          )
+        ] })
       ]
     }
   );
@@ -52759,6 +52816,47 @@ function StatCard({
     }
   );
 }
+const AI_GENERATION_TREND = [
+  { month: "Aug '24", images: 4200, videos: 1100, total: 5300 },
+  { month: "Sep '24", images: 5800, videos: 1450, total: 7250 },
+  { month: "Oct '24", images: 7100, videos: 1920, total: 9020 },
+  { month: "Nov '24", images: 8900, videos: 2340, total: 11240 },
+  { month: "Dec '24", images: 12400, videos: 3100, total: 15500 },
+  { month: "Jan '25", images: 9800, videos: 2600, total: 12400 },
+  { month: "Feb '25", images: 11200, videos: 2980, total: 14180 },
+  { month: "Mar '25", images: 14500, videos: 3800, total: 18300 },
+  { month: "Apr '25", images: 16200, videos: 4200, total: 20400 },
+  { month: "May '25", images: 18900, videos: 4890, total: 23790 },
+  { month: "Jun '25", images: 22400, videos: 5600, total: 28e3 },
+  { month: "Jul '25", images: 26800, videos: 6700, total: 33500 }
+];
+const SOCIAL_ENGAGEMENT = [
+  { day: "Mon", instagram: 4200, facebook: 2100, twitter: 1800, linkedin: 890 },
+  {
+    day: "Tue",
+    instagram: 3800,
+    facebook: 1900,
+    twitter: 2100,
+    linkedin: 1200
+  },
+  {
+    day: "Wed",
+    instagram: 5200,
+    facebook: 2800,
+    twitter: 2400,
+    linkedin: 1450
+  },
+  { day: "Thu", instagram: 4900, facebook: 2400, twitter: 1900, linkedin: 980 },
+  {
+    day: "Fri",
+    instagram: 6800,
+    facebook: 3200,
+    twitter: 3100,
+    linkedin: 1890
+  },
+  { day: "Sat", instagram: 8900, facebook: 4100, twitter: 2600, linkedin: 670 },
+  { day: "Sun", instagram: 7400, facebook: 3600, twitter: 2200, linkedin: 540 }
+];
 const RECENT_ACTIVITY = [
   {
     id: 1,
@@ -53107,6 +53205,168 @@ function Dashboard() {
                 },
                 u2
               ))
+            ] })
+          ] })
+        ] })
+      ]
+    }
+  );
+}
+function GoogleBusinessConnect() {
+  const [loading, setLoading] = reactExports.useState(false);
+  const [connecting, setConnecting] = reactExports.useState(false);
+  const [saving, setSaving] = reactExports.useState(false);
+  const [isConnected, setIsConnected] = reactExports.useState(false);
+  const [locations, setLocations] = reactExports.useState([]);
+  const [selectedLocation, setSelectedLocation] = reactExports.useState("");
+  const connectGoogle = async () => {
+    try {
+      setConnecting(true);
+      const data = await get$3(ENDPOINT.GOOGLE_CONNECT, {
+        auth: true
+      });
+      window.location.href = data.url;
+    } catch (error) {
+      console.error(error);
+      alert(error.message || "Unable to connect Google.");
+    } finally {
+      setConnecting(false);
+    }
+  };
+  const fetchLocations = async () => {
+    try {
+      setLoading(true);
+      const data = await get$3(ENDPOINT.GOOGLE_LOCATIONS, {
+        auth: true
+      });
+      setLocations(data);
+    } catch (error) {
+      console.error(error);
+      alert(error.message || "Failed to fetch locations.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  const saveLocation = async () => {
+    if (!selectedLocation) {
+      alert("Please select a location.");
+      return;
+    }
+    try {
+      setSaving(true);
+      const data = await post(
+        ENDPOINT.GOOGLE_LOCATION,
+        {
+          locationId: selectedLocation
+        },
+        {
+          auth: true
+        }
+      );
+      alert(data.message);
+    } catch (error) {
+      console.error(error);
+      alert(error.message || "Failed to save location.");
+    } finally {
+      setSaving(false);
+    }
+  };
+  reactExports.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("connected") === "true") {
+      setIsConnected(true);
+      fetchLocations();
+      window.history.replaceState({}, "", "/google-business");
+    }
+  }, []);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    motion.div,
+    {
+      initial: { opacity: 0, y: 15 },
+      animate: { opacity: 1, y: 0 },
+      transition: { duration: 0.35 },
+      className: "space-y-6",
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bg-card border border-border rounded-xl p-6 shadow-card", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-2xl font-bold", children: "Google Business Profile" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-muted-foreground mt-1", children: "Connect your Google Business Profile and select your business location." })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              onClick: connectGoogle,
+              disabled: connecting,
+              className: `px-5 py-2 rounded-lg text-white ${isConnected ? "bg-green-600" : "bg-blue-600"}`,
+              children: isConnected ? "Google Connected" : connecting ? "Connecting..." : "Connect Google"
+            }
+          )
+        ] }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-card border border-border rounded-xl p-6 shadow-card", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between mb-5", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-lg font-semibold", children: "Google Locations" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                onClick: fetchLocations,
+                disabled: loading,
+                className: "px-4 py-2 rounded-lg bg-black text-white hover:bg-gray-800 disabled:opacity-60",
+                children: loading ? "Loading..." : "Refresh"
+              }
+            )
+          ] }),
+          loading ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "py-10 text-center", children: "Fetching locations..." }) : locations.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "py-10 text-center text-gray-500", children: "No Google locations found." }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "select",
+              {
+                value: selectedLocation,
+                onChange: (e3) => setSelectedLocation(e3.target.value),
+                className: "w-full border rounded-lg p-3",
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "Select Google Location" }),
+                  locations.map((location2) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: location2.locationId, children: location2.title }, location2.locationId))
+                ]
+              }
+            ),
+            selectedLocation && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-6", children: [
+              locations.filter((item) => item.locationId === selectedLocation).map((location2) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "div",
+                {
+                  className: "rounded-lg border p-5 space-y-3",
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-semibold", children: "Business Name :" }),
+                      " ",
+                      location2.title
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-semibold", children: "Location ID :" }),
+                      " ",
+                      location2.locationId
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-semibold", children: "Place ID :" }),
+                      " ",
+                      location2.placeId || "-"
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-semibold", children: "Resource Name :" }),
+                      " ",
+                      location2.name
+                    ] })
+                  ]
+                },
+                location2.locationId
+              )),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "button",
+                {
+                  onClick: saveLocation,
+                  disabled: saving,
+                  className: "mt-5 px-5 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-60",
+                  children: saving ? "Saving..." : "Save Location"
+                }
+              )
             ] })
           ] })
         ] })
@@ -54687,6 +54947,11 @@ const dashboardRoute = createRoute({
   path: "/dashboard",
   component: Dashboard
 });
+const testingRoute = createRoute({
+  getParentRoute: () => mainLayoutRoute,
+  path: "/google",
+  component: GoogleBusinessConnect
+});
 const usersRoute = createRoute({
   getParentRoute: () => mainLayoutRoute,
   path: "/users",
@@ -54727,6 +54992,7 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   mainLayoutRoute.addChildren([
     dashboardRoute,
+    testingRoute,
     usersRoute,
     aiContentRoute,
     socialMediaRoute,
