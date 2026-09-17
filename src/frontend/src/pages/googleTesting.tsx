@@ -50,9 +50,12 @@ export default function GoogleBusinessConnect() {
     try {
       setLoading(true);
 
-      const data = await get<GoogleLocation[]>(ENDPOINT.GOOGLE_LOCATIONS, {
-        auth: true,
-      });
+      const data = await get<GoogleLocation[]>(
+        `${ENDPOINT.GOOGLE_LOCATIONS}?type=refresh`,
+        {
+          auth: true,
+        },
+      );
 
       setLocations(data);
     } catch (error: any) {

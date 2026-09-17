@@ -23,10 +23,10 @@ import SocialMedia from "./pages/SocialMedia";
 import Templates from "./pages/Templates";
 import Users from "./pages/Users";
 
-function requireAuth() {
-  const auth = getStoredAuth();
-  if (!auth?.token) throw redirect({ to: "/login" });
-}
+// function requireAuth() {
+//   const auth = getStoredAuth();
+//   if (!auth?.token) throw redirect({ to: "/login" });
+// }
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -65,7 +65,7 @@ const loginRoute = createRoute({
 const mainLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "main",
-  beforeLoad: requireAuth,
+  // beforeLoad: requireAuth,
   component: () => <MainLayout />,
 });
 
