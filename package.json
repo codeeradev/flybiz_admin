@@ -1,21 +1,8 @@
 {
   "name": "project",
-  "type": "module",
-  "engines": {
-    "node": ">=16.0.0",
-    "pnpm": ">=7.0.0",
-    "npm": "please use pnpm"
-  },
+  "version": "1.0.0",
   "scripts": {
     "build": "node canary.js && tsc",
     "prepare": "node canary.js"
-  },
-  "devDependencies": {
-    "sharp": "^0.34.4"
-  },
-  "dependencies": {
-    "axios": "^1.18.1",
-    "vite": "^8.0.0"
-  },
-  "version": "1.0.0"
+  }
 }
